@@ -10,18 +10,23 @@ import (
 func main() {
 
 	handler := slog.NewJSONHandler(os.Stdout, nil)
-	opts := &Options{
-		Size:       10,
-		Level:      slog.LevelInfo,
-		AttrFilter: "RequestId",
+	opts := &HandlerOptions{
+		TailSize: 10,
+		Level:    slog.LevelInfo,
+		AttrKey:  "RequestId",
 	}
-	log := slog.New(NewRingHandler(handler, opts))
+	log := slog.New(NewLogTailHandler(handler, opts))
+
+	// log.With()
 	log.Debug("Debug 1", "RequestId", "123")
 	log.Debug("Debug 2", "RequestId", "456")
 
-	log.Debug("Debug 4", "RequestId", "123")
+	log.Debug("Debug 2", "RequestId", "123")
 	log.Debug("Debug 5", "RequestId", "456")
 
-	log.Warn("Warning...", "RequestId", "123")
+	log.Info("Info 1", "RequestId", "123")
+	log.Info("Info 2", "RequestId", "123")
+
+	log.Warn("Warning 1", "RequestId", "123")
 	log.Error("Boom!", "RequestId", "123")
 }
