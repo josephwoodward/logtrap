@@ -8,13 +8,16 @@ import (
 )
 
 type HandlerOptions struct {
-	// Number of per request logs buffered that will be flushed in the event of an error
+	// Number of per request logs buffered that will be flushed in the event of an error. Default is 10.
 	TailSize int
 
 	// Attribute to index logs on
 	AttrKey string
 
 	TailLevel slog.Leveler
+
+	// FlushLevel determines what level to flush the buffer of log lines. Default is Error.
+	FlushLevel slog.Level
 }
 type commonHandler struct {
 	inner  slog.Handler
@@ -31,7 +34,7 @@ type LogTailHandler struct {
 // If opts is nil, the default options are used.
 func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
 	if opts == nil {
-		opts = &HandlerOptions{}
+		opts = &HandlerOptions{FlushLevel: slog.LevelError, TailSize: 10}
 	}
 
 	return &LogTailHandler{
@@ -75,7 +78,7 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 	switch record.Level {
 
 	// flush buffer on error
-	case slog.LevelError:
+	case h.opts.FlushLevel:
 		if buf, ok := h.buffer[key]; ok {
 			var err error
 			buf.Do(func(v any) {
