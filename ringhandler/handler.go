@@ -14,7 +14,7 @@ type HandlerOptions struct {
 	// Attribute to index logs on
 	AttrKey string
 
-	Level slog.Leveler
+	TailLevel slog.Leveler
 }
 type commonHandler struct {
 	inner  slog.Handler
@@ -27,9 +27,9 @@ type LogTailHandler struct {
 	*commonHandler
 }
 
-// NewLogTailHandler creates a [LogTailHandler] that writes to the handler.
+// NewHandler creates a [LogTailHandler] that writes to the handler.
 // If opts is nil, the default options are used.
-func NewLogTailHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
+func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
 	if opts == nil {
 		opts = &HandlerOptions{}
 	}
@@ -45,17 +45,20 @@ func NewLogTailHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandl
 }
 
 // Enabled implements slog.Handler.
-func (r *LogTailHandler) Enabled(context.Context, slog.Level) bool {
+func (r *LogTailHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	r.inner.Enabled(ctx, level)
 	return true
 }
 
 // WithAttrs implements slog.Handler.
 func (r *LogTailHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	r.inner.WithAttrs(attrs)
 	return r
 }
 
 // WithGroup implements slog.Handler.
 func (r *LogTailHandler) WithGroup(name string) slog.Handler {
+	r.WithGroup(name)
 	return r
 }
 
@@ -88,10 +91,6 @@ func (r *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 		r.mu.Lock()
 		defer r.mu.Unlock()
 
-		// var (
-		// 	buf *ring.Ring
-		// 	ok  bool
-		// )
 		if buf, ok := r.buffer[key]; ok {
 			buf.Value = record.Clone()
 			buf = buf.Next()
@@ -105,6 +104,5 @@ func (r *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 	}
 
 	return nil
-
 	// return r.inner.Handle(ctx, record)
 }

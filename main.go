@@ -11,13 +11,12 @@ func main() {
 
 	handler := slog.NewJSONHandler(os.Stdout, nil)
 	opts := &HandlerOptions{
-		TailSize: 10,
-		Level:    slog.LevelInfo,
-		AttrKey:  "RequestId",
+		TailSize:  10,
+		TailLevel: slog.LevelInfo,
+		AttrKey:   "RequestId",
 	}
-	log := slog.New(NewLogTailHandler(handler, opts))
+	log := slog.New(NewHandler(handler, opts))
 
-	// log.With()
 	log.Debug("Debug 1", "RequestId", "123")
 	log.Debug("Debug 2", "RequestId", "456")
 
