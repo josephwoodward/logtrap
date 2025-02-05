@@ -45,27 +45,27 @@ func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
 }
 
 // Enabled implements slog.Handler.
-func (r *LogTailHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	r.inner.Enabled(ctx, level)
+func (h *LogTailHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	h.inner.Enabled(ctx, level)
 	return true
 }
 
 // WithAttrs implements slog.Handler.
-func (r *LogTailHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	r.inner.WithAttrs(attrs)
-	return r
+func (h *LogTailHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	h.inner.WithAttrs(attrs)
+	return h
 }
 
 // WithGroup implements slog.Handler.
-func (r *LogTailHandler) WithGroup(name string) slog.Handler {
-	r.WithGroup(name)
-	return r
+func (h *LogTailHandler) WithGroup(name string) slog.Handler {
+	h.WithGroup(name)
+	return h
 }
 
-func (r *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
+func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 	var key string
 	record.Attrs(func(a slog.Attr) bool {
-		if a.Key == r.opts.AttrKey {
+		if a.Key == h.opts.AttrKey {
 			key = a.Value.String()
 			return false
 		}
@@ -76,30 +76,35 @@ func (r *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 
 	// flush buffer on error
 	case slog.LevelError:
-		// flush
-		if buf, ok := r.buffer[key]; ok {
-			buf.Do(func(a any) {
-				if s, ok := a.(slog.Record); ok {
-					_ = r.inner.Handle(ctx, s)
+		if buf, ok := h.buffer[key]; ok {
+			var err error
+			buf.Do(func(v any) {
+				if r, ok := v.(slog.Record); ok {
+					if err = h.inner.Handle(ctx, r); err != nil {
+						return
+					}
 				}
 			})
+			if err != nil {
+				return err
+			}
 		}
 
-		return r.inner.Handle(ctx, record)
+		return h.inner.Handle(ctx, record)
 	// append buffer on everything else
 	default:
-		r.mu.Lock()
-		defer r.mu.Unlock()
+		h.mu.Lock()
+		defer h.mu.Unlock()
 
-		if buf, ok := r.buffer[key]; ok {
+		if buf, ok := h.buffer[key]; ok {
 			buf.Value = record.Clone()
 			buf = buf.Next()
-			r.buffer[key] = buf
+			h.buffer[key] = buf
 		} else {
-			buf = ring.New(r.opts.TailSize)
+			buf = ring.New(h.opts.TailSize)
 			buf.Value = record.Clone()
 			buf = buf.Next()
-			r.buffer[key] = buf
+			h.buffer[key] = buf
 		}
 	}
 
