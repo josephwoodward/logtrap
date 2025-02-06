@@ -1,2 +1,0 @@
-{"time":"<datetime>","level":"DEBUG","msg":"Debug 1","RequestId":"123"}
-{"time":"<datetime>","level":"INFO","msg":"Info 2","RequestId":"123"}

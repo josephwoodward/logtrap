@@ -17,7 +17,7 @@ type HandlerOptions struct {
 	TailLevel slog.Leveler
 
 	// FlushLevel determines what level to flush the buffer of log lines. Default is Error.
-	FlushLevel slog.Level
+	FlushLevel slog.Leveler
 }
 type commonHandler struct {
 	inner  slog.Handler
@@ -35,6 +35,14 @@ type LogTailHandler struct {
 func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
 	if opts == nil {
 		opts = &HandlerOptions{FlushLevel: slog.LevelError, TailSize: 10}
+	}
+
+	if opts.FlushLevel == nil {
+		opts.FlushLevel = slog.LevelError
+	}
+
+	if opts.TailSize == 0 {
+		opts.TailSize = 10
 	}
 
 	return &LogTailHandler{
@@ -94,10 +102,20 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 		}
 
 		return h.inner.Handle(ctx, record)
+
 	// append buffer on everything else
 	default:
 		h.mu.Lock()
 		defer h.mu.Unlock()
+
+		// no need to capture log in buffer
+		if record.Level > h.opts.TailLevel.Level() {
+			return h.inner.Handle(ctx, record)
+		}
+
+		if h.opts.TailSize == 0 {
+			return h.inner.Handle(ctx, record)
+		}
 
 		if buf, ok := h.buffer[key]; ok {
 			buf.Value = record.Clone()
@@ -109,8 +127,7 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 			buf = buf.Next()
 			h.buffer[key] = buf
 		}
-	}
 
-	return nil
-	// return r.inner.Handle(ctx, record)
+		return nil
+	}
 }
