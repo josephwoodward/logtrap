@@ -1,4 +1,4 @@
-package slogring
+package logring
 
 import (
 	"container/ring"

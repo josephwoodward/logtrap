@@ -1,4 +1,4 @@
-package main
+package logring_test
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	approvals "github.com/approvals/go-approval-tests"
-	slogring "github.com/josephwoodward/log-ring/slogring"
+	slogring "github.com/josephwoodward/log-ring"
 )
 
 func Test_FlushesAtConfiguredLevel(t *testing.T) {
