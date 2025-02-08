@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	approvals "github.com/approvals/go-approval-tests"
 	"github.com/josephwoodward/log-ring/ringhandler"
@@ -57,17 +58,17 @@ func Test_LoggerOnlyLogsAboveTailLevel(t *testing.T) {
 func Test_LoggerFlushesDebugAndInfoLogsOnError(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
-	//TODO: Why is this logging debug and info when the json logger below is warn
 	logger := slog.New(ringhandler.NewHandler(
-		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelWarn}),
-		&ringhandler.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError, AttrKey: "RequestId"},
+		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
+		&ringhandler.HandlerOptions{TailSize: 0, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError, AttrKey: "RequestId"},
 	))
 
+	time.Sleep(1 * time.Second)
 	logger.Debug("Debug 1", "RequestId", "123")
 	logger.Debug("Debug 2", "RequestId", "123")
 
-	logger.Debug("Debug 1", "RequestId", "456")
-	logger.Debug("Debug 2", "RequestId", "456")
+	logger.Debug("Should not log", "RequestId", "456")
+	logger.Debug("Should not log", "RequestId", "456")
 
 	logger.Info("Info 1", "RequestId", "123")
 	logger.Info("Info 2", "RequestId", "123")
@@ -76,6 +77,7 @@ func Test_LoggerFlushesDebugAndInfoLogsOnError(t *testing.T) {
 	logger.Error("Error 1", "RequestId", "123")
 
 	actual := buf.String()
+
 	approvals.VerifyString(t, actual)
 }
 

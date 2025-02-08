@@ -74,7 +74,12 @@ func (h *LogTailHandler) WithGroup(name string) slog.Handler {
 }
 
 func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
+	if !h.inner.Enabled(ctx, record.Level) {
+		return nil
+	}
+
 	var key string
+	//TODO: Can we use Value in map, or can we use Unique?
 	record.Attrs(func(a slog.Attr) bool {
 		if a.Key == h.opts.AttrKey {
 			key = a.Value.String()
