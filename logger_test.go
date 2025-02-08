@@ -8,15 +8,15 @@ import (
 	"testing"
 
 	approvals "github.com/approvals/go-approval-tests"
-	"github.com/josephwoodward/log-ring/logring"
+	slogring "github.com/josephwoodward/log-ring/slogring"
 )
 
 func Test_FlushesAtConfiguredLevel(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
-	logger := slog.New(logring.NewHandler(
+	logger := slog.New(slogring.NewHandler(
 		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
-		&logring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, AttrKey: "RequestId", FlushLevel: slog.LevelError},
+		&slogring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, AttrKey: "RequestId", FlushLevel: slog.LevelError},
 	))
 
 	// act
@@ -33,9 +33,9 @@ func Test_FlushesAtConfiguredLevel(t *testing.T) {
 func Test_LoggerOnlyLogsAboveTailLevel(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
-	logger := slog.New(logring.NewHandler(
+	logger := slog.New(slogring.NewHandler(
 		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
-		&logring.HandlerOptions{TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError, AttrKey: "RequestId"},
+		&slogring.HandlerOptions{TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError, AttrKey: "RequestId"},
 	))
 
 	// act
@@ -57,9 +57,9 @@ func Test_LoggerOnlyLogsAboveTailLevel(t *testing.T) {
 func Test_LoggerFlushesDebugAndInfoLogsOnError(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
-	logger := slog.New(logring.NewHandler(
+	logger := slog.New(slogring.NewHandler(
 		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
-		&logring.HandlerOptions{TailSize: 0, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError, AttrKey: "RequestId"},
+		&slogring.HandlerOptions{TailSize: 0, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError, AttrKey: "RequestId"},
 	))
 
 	// act
@@ -82,9 +82,9 @@ func Test_LoggerFlushesDebugAndInfoLogsOnError(t *testing.T) {
 func Test_LoggerFlushesOnWarn(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
-	logger := slog.New(logring.NewHandler(
+	logger := slog.New(slogring.NewHandler(
 		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelInfo}),
-		&logring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelWarn, AttrKey: "RequestId"},
+		&slogring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelWarn, AttrKey: "RequestId"},
 	))
 
 	// act

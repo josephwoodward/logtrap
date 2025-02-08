@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	. "github.com/josephwoodward/log-ring/logring"
+	. "github.com/josephwoodward/log-ring/slogring"
 )
 
 func main() {
