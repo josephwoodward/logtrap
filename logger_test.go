@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 
 	approvals "github.com/approvals/go-approval-tests"
 	"github.com/josephwoodward/log-ring/ringhandler"
@@ -63,7 +62,7 @@ func Test_LoggerFlushesDebugAndInfoLogsOnError(t *testing.T) {
 		&ringhandler.HandlerOptions{TailSize: 0, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError, AttrKey: "RequestId"},
 	))
 
-	time.Sleep(1 * time.Second)
+	// act
 	logger.Debug("Debug 1", "RequestId", "123")
 	logger.Debug("Debug 2", "RequestId", "123")
 
@@ -76,9 +75,8 @@ func Test_LoggerFlushesDebugAndInfoLogsOnError(t *testing.T) {
 	logger.Warn("Warning 1", "RequestId", "123")
 	logger.Error("Error 1", "RequestId", "123")
 
-	actual := buf.String()
-
-	approvals.VerifyString(t, actual)
+	// assert
+	approvals.VerifyString(t, buf.String())
 }
 
 func Test_LoggerFlushesOnWarn(t *testing.T) {
@@ -89,10 +87,12 @@ func Test_LoggerFlushesOnWarn(t *testing.T) {
 		&ringhandler.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelWarn, AttrKey: "RequestId"},
 	))
 
+	// act
 	logger.Info("Info 1", "RequestId", "123")
 	logger.Info("Info 2", "RequestId", "123")
 	logger.Warn("Warning 1", "RequestId", "123")
 
+	// assert
 	approvals.VerifyString(t, buf.String())
 }
 
