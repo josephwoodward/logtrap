@@ -1,4 +1,4 @@
-package ringhandler
+package logring
 
 import (
 	"container/ring"
