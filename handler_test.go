@@ -2,6 +2,7 @@ package logring_test
 
 import (
 	"bytes"
+	"context"
 	"log/slog"
 	"os"
 	"strings"
@@ -10,6 +11,29 @@ import (
 	approvals "github.com/approvals/go-approval-tests"
 	slogring "github.com/josephwoodward/log-ring"
 )
+
+func Test_GetsKeyFromContext(t *testing.T) {
+	// arrange
+	var buf bytes.Buffer
+	logger := slog.New(slogring.NewHandler(
+		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
+		&slogring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelDebug, AttrKey: "RequestId", FlushLevel: slog.LevelError},
+	))
+
+	// act
+	ctx := context.WithValue(context.Background(), "RequestId", "1234")
+	logger.DebugContext(ctx, "debug expected")
+	logger.InfoContext(ctx, "info expected")
+	logger.ErrorContext(ctx, "log error")
+
+	// assert
+	if !strings.Contains(buf.String(), "debug expected") {
+		t.Errorf("expected to see debug logs but didn't find it:\n%s", buf.String())
+	}
+	if !strings.Contains(buf.String(), "info expected") {
+		t.Errorf("expected to see info logs but didn't find it:\n%s", buf.String())
+	}
+}
 
 func Test_FlushesAtConfiguredLevel(t *testing.T) {
 	// arrange
