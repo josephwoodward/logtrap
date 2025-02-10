@@ -57,20 +57,19 @@ func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
 
 // Enabled implements slog.Handler.
 func (h *LogTailHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	h.inner.Enabled(ctx, level)
-	return true
+	return h.inner.Enabled(ctx, level)
 }
 
 // WithAttrs implements slog.Handler.
 func (h *LogTailHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	h.inner.WithAttrs(attrs)
-	return h
+	// return &LogTailHandler{commonHandler: h.commonHandler.
+	// return &TextHandler{commonHandler: h.commonHandler.withAttrs(attrs)}
+	return h.inner.WithAttrs(attrs)
 }
 
 // WithGroup implements slog.Handler.
 func (h *LogTailHandler) WithGroup(name string) slog.Handler {
-	h.WithGroup(name)
-	return h
+	return h.inner.WithGroup(name)
 }
 
 func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
@@ -92,6 +91,10 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 
 	// flush buffer on error
 	case h.opts.FlushLevel:
+
+		h.mu.Lock()
+		defer h.mu.Unlock()
+
 		if buf, ok := h.buffer[key]; ok {
 			var err error
 			buf.Do(func(v any) {
@@ -110,17 +113,14 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 
 	// append buffer on everything else
 	default:
+		// no need to capture log in buffer
+		if h.opts.TailSize == 0 ||
+			record.Level > h.opts.TailLevel.Level() {
+			return h.inner.Handle(ctx, record)
+		}
+
 		h.mu.Lock()
 		defer h.mu.Unlock()
-
-		// no need to capture log in buffer
-		if record.Level > h.opts.TailLevel.Level() {
-			return h.inner.Handle(ctx, record)
-		}
-
-		if h.opts.TailSize == 0 {
-			return h.inner.Handle(ctx, record)
-		}
 
 		if buf, ok := h.buffer[key]; ok {
 			buf.Value = record.Clone()
