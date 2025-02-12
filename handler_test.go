@@ -20,7 +20,7 @@ func Test_WithLogger(t *testing.T) {
 	var buf bytes.Buffer
 	handler := NewHandler(
 		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
-		&HandlerOptions{TailSize: 10, TailLevel: slog.LevelDebug, AttrKey: "request_id", FlushLevel: slog.LevelError},
+		&HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, AttrKey: "request_id", FlushLevel: slog.LevelError},
 	)
 	logger := slog.New(handler)
 
@@ -28,7 +28,7 @@ func Test_WithLogger(t *testing.T) {
 	l := logger.With(slog.String("request_id", "1234"))
 	l.Debug("debug expected")
 	l.Info("info expected")
-	// l.Error("error expected")
+	l.Error("error expected")
 
 	// assert
 	if len(handler.buffer) != 1 {

@@ -19,15 +19,19 @@ type HandlerOptions struct {
 	// FlushLevel determines what level to flush the buffer of log lines. Default is Error.
 	FlushLevel slog.Leveler
 }
-type commonHandler struct {
+
+type LogTailHandler struct {
 	inner  slog.Handler
 	opts   HandlerOptions
 	mu     *sync.Mutex
 	buffer map[string]*ring.Ring
+	goas   []groupOrAttrs
 }
 
-type LogTailHandler struct {
-	*commonHandler
+// groupOrAttrs holds either a group name or a list of slog.Attrs.
+type groupOrAttrs struct {
+	group string      // group name if non-empty
+	attrs []slog.Attr // attrs if non-empty
 }
 
 // NewHandler creates a [LogTailHandler] that writes to the handler.
@@ -46,12 +50,10 @@ func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
 	}
 
 	return &LogTailHandler{
-		&commonHandler{
-			inner:  handler,
-			buffer: make(map[string]*ring.Ring),
-			opts:   *opts,
-			mu:     &sync.Mutex{},
-		},
+		inner:  handler,
+		buffer: make(map[string]*ring.Ring),
+		opts:   *opts,
+		mu:     &sync.Mutex{},
 	}
 }
 
@@ -62,14 +64,27 @@ func (h *LogTailHandler) Enabled(ctx context.Context, level slog.Level) bool {
 
 // WithAttrs implements slog.Handler.
 func (h *LogTailHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	// return &LogTailHandler{commonHandler: h.commonHandler.
-	// return &TextHandler{commonHandler: h.commonHandler.withAttrs(attrs)}
-	return h.inner.WithAttrs(attrs)
+	if len(attrs) == 0 {
+		return h
+	}
+	return h.withGroupOrAttrs(groupOrAttrs{attrs: attrs})
 }
 
 // WithGroup implements slog.Handler.
 func (h *LogTailHandler) WithGroup(name string) slog.Handler {
+	if name == "" {
+		return h
+	}
+	// return h.withGroupOrAttrs(groupOrAttrs{group: name})
 	return h.inner.WithGroup(name)
+}
+
+func (h *LogTailHandler) withGroupOrAttrs(goa groupOrAttrs) *LogTailHandler {
+	h2 := *h
+	h2.goas = make([]groupOrAttrs, len(h.goas)+1)
+	copy(h2.goas, h.goas)
+	h2.goas[len(h2.goas)-1] = goa
+	return &h2
 }
 
 func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
