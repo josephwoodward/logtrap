@@ -75,8 +75,7 @@ func (h *LogTailHandler) WithGroup(name string) slog.Handler {
 	if name == "" {
 		return h
 	}
-	// return h.withGroupOrAttrs(groupOrAttrs{group: name})
-	return h.inner.WithGroup(name)
+	return h.withGroupOrAttrs(groupOrAttrs{group: name})
 }
 
 func (h *LogTailHandler) withGroupOrAttrs(goa groupOrAttrs) *LogTailHandler {
@@ -90,6 +89,11 @@ func (h *LogTailHandler) withGroupOrAttrs(goa groupOrAttrs) *LogTailHandler {
 func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 	if !h.inner.Enabled(ctx, record.Level) {
 		return nil
+	}
+
+	//TODO: Ensure this is a string and get value from context
+	if ctx != nil {
+		ctx.Value(h.opts.AttrKey)
 	}
 
 	var key string
@@ -129,8 +133,7 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 	// append buffer on everything else
 	default:
 		// no need to capture log in buffer
-		if h.opts.TailSize == 0 ||
-			record.Level > h.opts.TailLevel.Level() {
+		if h.opts.TailSize == 0 || len(key) == 0 || record.Level > h.opts.TailLevel.Level() {
 			return h.inner.Handle(ctx, record)
 		}
 

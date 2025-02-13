@@ -16,31 +16,31 @@ func Test_GetsKeyFromContext(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
 	logger := slog.New(logring.NewHandler(
-		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
-		&logring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelDebug, AttrKey: "RequestId", FlushLevel: slog.LevelError},
+		slog.NewTextHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
+		&logring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelDebug, AttrKey: "request_id", FlushLevel: slog.LevelError},
 	))
 
 	// act
-	logger.With()
-	ctx := context.WithValue(context.Background(), "RequestId", "1234")
+	ctx := context.WithValue(context.Background(), "request_id", "1234")
 	logger.DebugContext(ctx, "debug expected")
 	logger.InfoContext(ctx, "info expected")
 	logger.ErrorContext(ctx, "log error")
 
+	approvals.VerifyString(t, buf.String())
 	// assert
-	if !strings.Contains(buf.String(), "debug expected") {
-		t.Errorf("expected to see debug logs but didn't find it:\n%s", buf.String())
-	}
-	if !strings.Contains(buf.String(), "info expected") {
-		t.Errorf("expected to see info logs but didn't find it:\n%s", buf.String())
-	}
+	// if !strings.Contains(buf.String(), "debug expected") {
+	// 	t.Errorf("expected to see debug logs but didn't find it:\n%s", buf.String())
+	// }
+	// if !strings.Contains(buf.String(), "info expected") {
+	// 	t.Errorf("expected to see info logs but didn't find it:\n%s", buf.String())
+	// }
 }
 
 func Test_FlushesAtConfiguredLevel(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
 	logger := slog.New(logring.NewHandler(
-		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
+		slog.NewTextHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
 		&logring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, AttrKey: "RequestId", FlushLevel: slog.LevelError},
 	))
 
@@ -59,7 +59,7 @@ func Test_LoggerOnlyLogsAboveTailLevel(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
 	logger := slog.New(logring.NewHandler(
-		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
+		slog.NewTextHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
 		&logring.HandlerOptions{TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError, AttrKey: "RequestId"},
 	))
 
@@ -83,7 +83,7 @@ func Test_LoggerFlushesDebugAndInfoLogsOnError(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
 	logger := slog.New(logring.NewHandler(
-		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
+		slog.NewTextHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
 		&logring.HandlerOptions{TailSize: 0, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError, AttrKey: "RequestId"},
 	))
 
@@ -108,7 +108,7 @@ func Test_LoggerFlushesOnWarn(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
 	logger := slog.New(logring.NewHandler(
-		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelInfo}),
+		slog.NewTextHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelInfo}),
 		&logring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelWarn, AttrKey: "RequestId"},
 	))
 

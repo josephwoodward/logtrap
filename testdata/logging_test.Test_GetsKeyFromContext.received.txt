@@ -1,3 +1,3 @@
 time=<datetime> level=DEBUG msg="debug expected"
 time=<datetime> level=INFO msg="info expected"
-time=<datetime> level=ERROR msg="error expected"
+time=<datetime> level=ERROR msg="log error"

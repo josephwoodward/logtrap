@@ -8,18 +8,11 @@ import (
 	approvals "github.com/approvals/go-approval-tests"
 )
 
-// var clearTimeAttr = func(_ []string, a slog.Attr) slog.Attr {
-// 	if a.Key == "time" {
-// 		return slog.String("time", "<datetime>")
-// 	}
-// 	return a
-// }
-
 func Test_WithLogger(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
 	handler := NewHandler(
-		slog.NewJSONHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
+		slog.NewTextHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
 		&HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, AttrKey: "request_id", FlushLevel: slog.LevelError},
 	)
 	logger := slog.New(handler)
