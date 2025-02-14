@@ -17,7 +17,7 @@ func Test_GetsKeyFromContext(t *testing.T) {
 	var buf bytes.Buffer
 	logger := slog.New(logring.NewHandler(
 		slog.NewTextHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
-		&logring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelDebug, AttrKey: "request_id", FlushLevel: slog.LevelError},
+		&logring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, AttrKey: "request_id", FlushLevel: slog.LevelError},
 	))
 
 	// act
@@ -26,8 +26,8 @@ func Test_GetsKeyFromContext(t *testing.T) {
 	logger.InfoContext(ctx, "info expected")
 	logger.ErrorContext(ctx, "log error")
 
-	approvals.VerifyString(t, buf.String())
 	// assert
+	approvals.VerifyString(t, buf.String())
 	// if !strings.Contains(buf.String(), "debug expected") {
 	// 	t.Errorf("expected to see debug logs but didn't find it:\n%s", buf.String())
 	// }

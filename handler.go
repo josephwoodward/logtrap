@@ -91,20 +91,27 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 		return nil
 	}
 
-	//TODO: Ensure this is a string and get value from context
-	if ctx != nil {
-		ctx.Value(h.opts.AttrKey)
+	if h.opts.TailSize == 0 {
+		return h.inner.Handle(ctx, record)
 	}
 
-	var key string
-	//TODO: Can we use Value in map, or can we use Unique?
-	record.Attrs(func(a slog.Attr) bool {
-		if a.Key == h.opts.AttrKey {
-			key = a.Value.String()
-			return false
+	// look for h.opts.AttrKey, context is priority followed by log attributes.
+	// set a default key incase they one is not specified then handler uses same map mechanism regardless
+	key := "nokey"
+	if ctx != nil {
+		if v, ok := ctx.Value(h.opts.AttrKey).(string); ok {
+			key = v
 		}
-		return true
-	})
+	} else {
+		//TODO: Can we use Value in map, or can we use Unique?
+		record.Attrs(func(a slog.Attr) bool {
+			if a.Key == h.opts.AttrKey {
+				key = a.Value.String()
+				return false
+			}
+			return true
+		})
+	}
 
 	switch record.Level {
 
@@ -116,6 +123,7 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 
 		if buf, ok := h.buffer[key]; ok {
 			var err error
+			// iterate through buffer, flushing output to underlying handler
 			buf.Do(func(v any) {
 				if r, ok := v.(slog.Record); ok {
 					if err = h.inner.Handle(ctx, r); err != nil {
@@ -133,7 +141,7 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 	// append buffer on everything else
 	default:
 		// no need to capture log in buffer
-		if h.opts.TailSize == 0 || len(key) == 0 || record.Level > h.opts.TailLevel.Level() {
+		if record.Level > h.opts.TailLevel.Level() {
 			return h.inner.Handle(ctx, record)
 		}
 
