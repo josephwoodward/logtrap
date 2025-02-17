@@ -91,8 +91,8 @@ func Test_LoggerFlushesDebugAndInfoLogsOnError(t *testing.T) {
 	logger.Debug("Debug 1", "RequestId", "123")
 	logger.Debug("Debug 2", "RequestId", "123")
 
-	logger.Debug("Should not log", "RequestId", "456")
-	logger.Debug("Should not log", "RequestId", "456")
+	logger.Debug("Should also log", "RequestId", "456")
+	logger.Debug("Should also log", "RequestId", "456")
 
 	logger.Info("Info 1", "RequestId", "123")
 	logger.Info("Info 2", "RequestId", "123")
