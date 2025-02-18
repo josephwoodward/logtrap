@@ -14,11 +14,11 @@ var table = []struct {
 	h     *slog.Logger
 	input int
 }{
-	// {
-	// 	name:  "default handler",
-	// 	h:     slog.New(defaultHandler()),
-	// 	input: 100,
-	// },
+	{
+		name:  "default handler",
+		h:     slog.New(defaultHandler()),
+		input: 100,
+	},
 	{
 		name:  "ring buffer handler",
 		h:     slog.New(slogHandler()),
@@ -44,7 +44,7 @@ func BenchmarkPrimeNumbers(b *testing.B) {
 	for _, v := range table {
 		b.Run(v.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				logSomething(ctx, v.h)
+				v.h.InfoContext(ctx, "Hello world!")
 			}
 		})
 	}
