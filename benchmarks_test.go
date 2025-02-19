@@ -45,6 +45,11 @@ func BenchmarkPrimeNumbers(b *testing.B) {
 		b.Run(v.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				v.h.InfoContext(ctx, "Hello world!")
+				v.h.InfoContext(ctx, "Hello world!")
+				v.h.InfoContext(ctx, "Hello world!")
+				v.h.InfoContext(ctx, "Hello world!")
+				v.h.InfoContext(ctx, "Hello world!")
+				v.h.ErrorContext(ctx, "Hello world!")
 			}
 		})
 	}
