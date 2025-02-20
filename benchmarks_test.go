@@ -29,7 +29,7 @@ var table = []struct {
 func slogHandler() slog.Handler {
 	handler := logring.NewHandler(
 		defaultHandler(),
-		&logring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, AttrKey: "request_id", FlushLevel: slog.LevelError},
+		&logring.HandlerOptions{TailSize: 5, TailLevel: slog.LevelInfo, AttrKey: "request_id", FlushLevel: slog.LevelError},
 	)
 	return handler
 }
@@ -41,11 +41,15 @@ func defaultHandler() slog.Handler {
 
 func BenchmarkPrimeNumbers(b *testing.B) {
 	ctx := context.WithValue(context.Background(), "request_id", "1234")
+	ctx2 := context.Background()
 	for _, v := range table {
 		b.Run(v.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				v.h.InfoContext(ctx, "Hello world!")
+				v.h.InfoContext(ctx2, "Hello world!")
 				v.h.InfoContext(ctx, "Hello world!")
+				v.h.InfoContext(ctx, "Hello world!")
+				v.h.InfoContext(ctx2, "Hello world!")
 				v.h.InfoContext(ctx, "Hello world!")
 				v.h.InfoContext(ctx, "Hello world!")
 				v.h.InfoContext(ctx, "Hello world!")

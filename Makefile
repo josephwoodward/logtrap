@@ -12,6 +12,9 @@ watch-test:
 bench:
 	go test -benchmem -count 3 -bench ./...
 
+profile:
+	go test -bench=. -benchmem -memprofile memprofile.out
+
 coverage:
 	${BIN} test -v -coverprofile=cover.out -covermode=atomic .
 	${BIN} tool cover -html=cover.out -o cover.html
