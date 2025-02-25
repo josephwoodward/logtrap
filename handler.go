@@ -134,6 +134,7 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 			if err != nil {
 				return err
 			}
+			delete(h.buffer, key)
 		}
 
 		return h.inner.Handle(ctx, record)
