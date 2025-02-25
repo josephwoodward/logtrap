@@ -29,31 +29,39 @@ var table = []struct {
 func slogHandler() slog.Handler {
 	handler := logring.NewHandler(
 		defaultHandler(),
-		&logring.HandlerOptions{TailSize: 5, TailLevel: slog.LevelInfo, AttrKey: "request_id", FlushLevel: slog.LevelError},
+		&logring.HandlerOptions{TailSize: 5, TailLevel: slog.LevelWarn, AttrKey: "request_id", FlushLevel: slog.LevelError},
 	)
 	return handler
 }
 
 func defaultHandler() slog.Handler {
-	handler := slog.NewTextHandler(io.Discard, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug})
+	handler := slog.NewTextHandler(io.Discard, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelInfo})
 	return handler
+}
+
+func Test_Benchmark(t *testing.T) {
+	logger := slog.New(slogHandler())
+	ctx := context.WithValue(context.Background(), "request_id", "1234")
+	msg := "hello world!"
+
+	logger.InfoContext(ctx, msg)
+	logger.WarnContext(ctx, msg)
+	logger.ErrorContext(ctx, msg)
 }
 
 func BenchmarkPrimeNumbers(b *testing.B) {
 	ctx := context.WithValue(context.Background(), "request_id", "1234")
-	ctx2 := context.Background()
+	msg := "hello world!"
 	for _, v := range table {
 		b.Run(v.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				v.h.InfoContext(ctx, "Hello world!")
-				v.h.InfoContext(ctx2, "Hello world!")
-				v.h.InfoContext(ctx, "Hello world!")
-				v.h.InfoContext(ctx, "Hello world!")
-				v.h.InfoContext(ctx2, "Hello world!")
-				v.h.InfoContext(ctx, "Hello world!")
-				v.h.InfoContext(ctx, "Hello world!")
-				v.h.InfoContext(ctx, "Hello world!")
-				v.h.ErrorContext(ctx, "Hello world!")
+				v.h.InfoContext(ctx, msg)
+				v.h.WarnContext(ctx, msg)
+				v.h.WarnContext(ctx, msg)
+				v.h.InfoContext(ctx, msg)
+				v.h.WarnContext(ctx, msg)
+				v.h.InfoContext(ctx, msg)
+				v.h.ErrorContext(ctx, msg)
 			}
 		})
 	}
