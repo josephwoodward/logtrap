@@ -58,6 +58,7 @@ func Test_FlushesAtConfiguredLevel(t *testing.T) {
 func Test_LoggerOnlyLogsAboveTailLevel(t *testing.T) {
 	// arrange
 	var buf bytes.Buffer
+	// logs level info and debug, flushes on error
 	logger := slog.New(logring.NewHandler(
 		slog.NewTextHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
 		&logring.HandlerOptions{TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError, AttrKey: "RequestId"},

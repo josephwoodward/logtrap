@@ -23,7 +23,7 @@ type HandlerOptions struct {
 type LogTailHandler struct {
 	inner  slog.Handler
 	opts   HandlerOptions
-	mu     *sync.Mutex
+	mu     sync.Mutex
 	buffer map[string]*ring.Ring
 	goas   []groupOrAttrs
 }
@@ -53,7 +53,6 @@ func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
 		inner:  handler,
 		buffer: make(map[string]*ring.Ring),
 		opts:   *opts,
-		mu:     &sync.Mutex{},
 	}
 }
 
