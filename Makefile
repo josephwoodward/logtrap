@@ -13,7 +13,10 @@ bench:
 	go test -benchmem -count 3 -bench ./...
 
 profile:
+	rm memprofile.out
 	go test -bench=. -benchmem -memprofile memprofile.out
+	# go tool pprof -http :8081 memprofile.out
+	# go tool pprof memprofile.out
 
 coverage:
 	${BIN} test -v -coverprofile=cover.out -covermode=atomic .

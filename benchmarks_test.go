@@ -39,15 +39,15 @@ func defaultHandler() slog.Handler {
 	return handler
 }
 
-func Test_Benchmark(t *testing.T) {
-	logger := slog.New(slogHandler())
-	ctx := context.WithValue(context.Background(), "request_id", "1234")
-	msg := "hello world!"
+// func Test_Benchmark(t *testing.T) {
+// 	logger := slog.New(slogHandler())
+// 	ctx := context.WithValue(context.Background(), "request_id", "1234")
+// 	msg := "hello world!"
 
-	logger.InfoContext(ctx, msg)
-	logger.WarnContext(ctx, msg)
-	logger.ErrorContext(ctx, msg)
-}
+// 	logger.InfoContext(ctx, msg)
+// 	logger.WarnContext(ctx, msg)
+// 	logger.ErrorContext(ctx, msg)
+// }
 
 func BenchmarkPrimeNumbers(b *testing.B) {
 	ctx := context.WithValue(context.Background(), "request_id", "1234")
@@ -56,11 +56,11 @@ func BenchmarkPrimeNumbers(b *testing.B) {
 		b.Run(v.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				v.h.InfoContext(ctx, msg)
-				v.h.WarnContext(ctx, msg)
-				v.h.WarnContext(ctx, msg)
-				v.h.InfoContext(ctx, msg)
-				v.h.WarnContext(ctx, msg)
-				v.h.InfoContext(ctx, msg)
+				// v.h.WarnContext(ctx, msg)
+				// v.h.WarnContext(ctx, msg)
+				// v.h.InfoContext(ctx, msg)
+				// v.h.WarnContext(ctx, msg)
+				// v.h.InfoContext(ctx, msg)
 				// v.h.ErrorContext(ctx, msg)
 			}
 		})
