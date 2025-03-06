@@ -14,11 +14,11 @@ var table = []struct {
 	h     *slog.Logger
 	input int
 }{
-	// {
-	// 	name:  "default handler",
-	// 	h:     slog.New(defaultHandler()),
-	// 	input: 100,
-	// },
+	{
+		name:  "default handler",
+		h:     slog.New(defaultHandler()),
+		input: 100,
+	},
 	{
 		name:  "ring buffer handler",
 		h:     slog.New(slogHandler()),
@@ -35,7 +35,7 @@ func slogHandler() slog.Handler {
 }
 
 func defaultHandler() slog.Handler {
-	handler := slog.NewTextHandler(io.Discard, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelInfo})
+	handler := slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelInfo})
 	return handler
 }
 
