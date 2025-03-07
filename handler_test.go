@@ -1,4 +1,4 @@
-package logring
+package logtrap
 
 import (
 	"bytes"

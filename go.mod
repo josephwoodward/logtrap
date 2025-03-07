@@ -1,4 +1,4 @@
-module github.com/josephwoodward/log-ring
+module github.com/josephwoodward/logtrap
 
 go 1.23
 

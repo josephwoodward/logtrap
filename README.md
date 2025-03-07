@@ -1,11 +1,10 @@
-# Ring Log
-
+# LogTrap
 
 ## Usage
 
 ```go
-opts := &logring.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, AttrKey: "request_id", FlushLevel: slog.LevelError}
-handler := logring.NewHandler(slog.NewTextHandler(os.Stdout, nil), opts)
+opts := &logtrap.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, AttrKey: "request_id", FlushLevel: slog.LevelError}
+handler := logtrap.NewHandler(slog.NewTextHandler(os.Stdout, nil), opts)
 
 // act
 logger := slog.New(handler)

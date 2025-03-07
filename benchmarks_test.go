@@ -1,4 +1,4 @@
-package logring_test
+package logtrap_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"testing"
 
-	logring "github.com/josephwoodward/log-ring"
+	logring "github.com/josephwoodward/logtrap"
 )
 
 var table = []struct {

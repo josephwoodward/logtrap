@@ -1,4 +1,4 @@
-package logring_test
+package logtrap_test
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	approvals "github.com/approvals/go-approval-tests"
-	logring "github.com/josephwoodward/log-ring"
+	logring "github.com/josephwoodward/logtrap"
 )
 
 func Test_GetsKeyFromContext(t *testing.T) {
