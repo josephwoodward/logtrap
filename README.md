@@ -1,5 +1,7 @@
 # LogTrap
 
+Save log quota and focus on the logs that matter with LogTrap, a handler for Go's `log/slog` package that uses a ring buffer to capture logs and only flush them upon receiving an error.
+
 ## Usage
 
 ```go
