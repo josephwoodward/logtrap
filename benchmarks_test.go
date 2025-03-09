@@ -2,11 +2,12 @@ package logtrap_test
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"testing"
 
-	logring "github.com/josephwoodward/logtrap"
+	"github.com/josephwoodward/logtrap"
 )
 
 var table = []struct {
@@ -27,9 +28,9 @@ var table = []struct {
 }
 
 func slogHandler() slog.Handler {
-	handler := logring.NewHandler(
+	handler := logtrap.NewHandler(
 		defaultHandler(),
-		&logring.HandlerOptions{TailSize: 5, TailLevel: slog.LevelWarn, AttrKey: "request_id", FlushLevel: slog.LevelError},
+		&logtrap.HandlerOptions{TailSize: 5, TailLevel: slog.LevelWarn, AttrKey: "request_id", FlushLevel: slog.LevelError},
 	)
 	return handler
 }
@@ -55,7 +56,7 @@ func BenchmarkPrimeNumbers(b *testing.B) {
 	for _, v := range table {
 		b.Run(v.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				v.h.InfoContext(ctx, msg)
+				v.h.InfoContext(ctx, msg, "request_id", fmt.Sprintf("request_%d", i))
 				// v.h.WarnContext(ctx, msg)
 				// v.h.WarnContext(ctx, msg)
 				// v.h.InfoContext(ctx, msg)

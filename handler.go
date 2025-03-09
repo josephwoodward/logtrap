@@ -112,10 +112,10 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 		})
 	}
 
-	switch record.Level {
+	switch {
 
-	// flush buffer on error
-	case h.opts.FlushLevel:
+	// flush buffer on flush level
+	case record.Level >= h.opts.FlushLevel.Level():
 
 		h.mu.Lock()
 		defer h.mu.Unlock()
