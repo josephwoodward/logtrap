@@ -132,7 +132,7 @@ func Test_LoggerFlushesOnWarn(t *testing.T) {
 			&logtrap.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelWarn, AttrKey: "RequestId"},
 		))
 
-		l := logger.With("request_id", "123")
+		l := logger.With("request_id", 123)
 
 		// act
 		l.Info("should log")
