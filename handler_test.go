@@ -45,8 +45,8 @@ func Test_WithLogger(t *testing.T) {
 	approvals.VerifyString(t, buf.String())
 }
 
-var clearTimeAttr = func(_ []string, a slog.Attr) slog.Attr {
-	if a.Key == "time" {
+func clearTimeAttr(_ []string, a slog.Attr) slog.Attr {
+	if a.Key == slog.TimeKey {
 		return slog.String("time", "<datetime>")
 	}
 	return a

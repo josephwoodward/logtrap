@@ -97,10 +97,8 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 	// look for h.opts.AttrKey, context is priority followed by log attributes.
 	// set a default key incase they one is not specified then handler uses same map mechanism regardless
 	key := "nokey"
-	if ctx != nil {
-		if v, ok := ctx.Value(h.opts.AttrKey).(string); ok {
-			key = v
-		}
+	if v, ok := ctx.Value(h.opts.AttrKey).(string); ok {
+		key = v
 	} else {
 		// TODO: Can we use Value in map, or can we use Unique?
 		record.Attrs(func(a slog.Attr) bool {
