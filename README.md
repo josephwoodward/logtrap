@@ -9,6 +9,7 @@ Save logging quota and focus on the logs that matter with LogTrap, a `log/slog` 
 - Flushes logs only when the configured "flush level" is met (usually an `Error` or `Warn`)
 - Helps reduce log noise and optimise logging costs
 - Seamless integration with Go's `log/slog` package
+- Can be scoped to attritues such as trace IDs, correlation IDs or Request IDs
 
 ### Installation
 
