@@ -24,7 +24,7 @@ type LogTailHandler struct {
 	inner  slog.Handler
 	opts   HandlerOptions
 	mu     sync.Mutex
-	buffer map[string]*ring.Ring
+	buffer map[any]*ring.Ring
 	goas   []groupOrAttrs
 }
 
@@ -51,7 +51,7 @@ func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
 
 	return &LogTailHandler{
 		inner:  handler,
-		buffer: make(map[string]*ring.Ring),
+		buffer: make(map[any]*ring.Ring),
 		opts:   *opts,
 	}
 }
@@ -96,14 +96,14 @@ func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
 
 	// look for h.opts.AttrKey, context is priority followed by log attributes.
 	// set a default key incase they one is not specified then handler uses same map mechanism regardless
-	key := "nokey"
+	var key any = "nokey"
 	if v, ok := ctx.Value(h.opts.AttrKey).(string); ok {
 		key = v
 	} else {
 		// TODO: Can we use Value in map, or can we use Unique?
 		record.Attrs(func(a slog.Attr) bool {
 			if a.Key == h.opts.AttrKey {
-				key = a.Value.String()
+				key = a.Value.Any()
 				return false
 			}
 			return true
