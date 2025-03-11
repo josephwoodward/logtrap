@@ -7,8 +7,8 @@ Save log quota and focus on the logs that matter with LogTrap, a handler for Go'
 Write `Error` and `Warning` logs, but only flush `Info` and `Debug` logs when an `Error` occurs:
 
 ```go
-opts := &logtrap.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelWarn}
-handler := logtrap.NewHandler(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelDebug}), opts)
+opts := &logtrap.HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, FlushLevel: slog.LevelError}
+handler := logtrap.NewHandler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}), opts)
 
 // act
 logger := slog.New(handler)
