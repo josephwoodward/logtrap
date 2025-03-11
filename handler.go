@@ -8,15 +8,19 @@ import (
 )
 
 type HandlerOptions struct {
-	// Number of per request logs buffered that will be flushed in the event of an error. Default is 10.
+	// TailSize configures the number of logs buffered that will be flushed in the event of the [logtrap.FlushLevel] being reached.
+	// Default: 10.
 	TailSize int
 
-	// Attribute to index logs on
+	// AttrKey is used to to index logs on [slog.Attr]
 	AttrKey string
 
+	// TailLevel configures the logs to be captured in LogTrap's buffer. TailLevel logs and lower will not be written unless the [logtrap.FlushLevel] is reached.
+	// Default: slog.LevelInfo
 	TailLevel slog.Leveler
 
-	// FlushLevel determines what level to flush the buffer of log lines. Default is Error.
+	// FlushLevel determines what level to flush the buffer of log lines.
+	// Default: slog.LevelError
 	FlushLevel slog.Leveler
 }
 
