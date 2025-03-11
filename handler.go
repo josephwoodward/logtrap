@@ -24,7 +24,7 @@ type HandlerOptions struct {
 	FlushLevel slog.Leveler
 }
 
-type LogTailHandler struct {
+type LogTrapHandler struct {
 	inner  slog.Handler
 	opts   HandlerOptions
 	mu     sync.Mutex
@@ -38,9 +38,9 @@ type groupOrAttrs struct {
 	attrs []slog.Attr // attrs if non-empty
 }
 
-// NewHandler creates a [LogTailHandler] that writes to the handler.
+// NewHandler creates a [LogTrapHandler] that writes to the handler.
 // If opts is nil, the default options are used.
-func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
+func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTrapHandler {
 	if opts == nil {
 		opts = &HandlerOptions{FlushLevel: slog.LevelError, TailSize: 10}
 	}
@@ -49,11 +49,15 @@ func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
 		opts.FlushLevel = slog.LevelError
 	}
 
+	if opts.TailLevel == nil {
+		opts.TailLevel = slog.LevelInfo
+	}
+
 	if opts.TailSize == 0 {
 		opts.TailSize = 10
 	}
 
-	return &LogTailHandler{
+	return &LogTrapHandler{
 		inner:  handler,
 		buffer: make(map[any]*ring.Ring),
 		opts:   *opts,
@@ -61,12 +65,12 @@ func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTailHandler {
 }
 
 // Enabled implements slog.Handler.
-func (h *LogTailHandler) Enabled(ctx context.Context, level slog.Level) bool {
+func (h *LogTrapHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return h.inner.Enabled(ctx, level)
 }
 
 // WithAttrs implements slog.Handler.
-func (h *LogTailHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+func (h *LogTrapHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	if len(attrs) == 0 {
 		return h
 	}
@@ -74,14 +78,14 @@ func (h *LogTailHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 }
 
 // WithGroup implements slog.Handler.
-func (h *LogTailHandler) WithGroup(name string) slog.Handler {
+func (h *LogTrapHandler) WithGroup(name string) slog.Handler {
 	if name == "" {
 		return h
 	}
 	return h.withGroupOrAttrs(groupOrAttrs{group: name})
 }
 
-func (h *LogTailHandler) withGroupOrAttrs(goa groupOrAttrs) *LogTailHandler {
+func (h *LogTrapHandler) withGroupOrAttrs(goa groupOrAttrs) *LogTrapHandler {
 	h2 := *h
 	h2.goas = make([]groupOrAttrs, len(h.goas)+1)
 	copy(h2.goas, h.goas)
@@ -89,7 +93,7 @@ func (h *LogTailHandler) withGroupOrAttrs(goa groupOrAttrs) *LogTailHandler {
 	return &h2
 }
 
-func (h *LogTailHandler) Handle(ctx context.Context, record slog.Record) error {
+func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 	if !h.inner.Enabled(ctx, record.Level) {
 		return nil
 	}
