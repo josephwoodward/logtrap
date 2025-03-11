@@ -1,6 +1,20 @@
 # LogTrap
 
-Save log quota and focus on the logs that matter with LogTrap, a handler for Go's `log/slog` package that uses a ring buffer to capture logs and only flush them upon receiving a log of the configured "flush level".
+Save logging quota and focus on the logs that matter with LogTrap, a `log/slog` handler for Go that buffers logs in a ring buffer and only flushes them when an error or warning occurs.
+
+
+### Features:
+
+- Write efficient buffering via a ring buffer
+- Flushes logs only when the "flush level" is met (usually an `Error` or `Warn`)
+- Helps reduce log noise and optimise logging costs
+- Seamless integration with Go's `log/slog` package
+
+### Installation
+
+```sh
+go get github.com/josephwoodward/logtrap
+```
 
 ### Examples
 
