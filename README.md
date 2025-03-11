@@ -17,7 +17,7 @@ Save logging quota and focus on the logs that matter with LogTrap, a `log/slog` 
 go get github.com/josephwoodward/logtrap
 ```
 
-### Examples
+### Example Configurations
 
 Write `Error` and `Warning` logs, but only flush `Info` and `Debug` logs when an `Error` occurs:
 
@@ -30,9 +30,25 @@ h := logtrap.NewHandler(inner, &logtrap.HandlerOptions{
 })
 logger := slog.New(h)
 
-logger.Debug("Not logged until error encountered")
-logger.Info("Not logged until error encountered")
+logger.Debug("Not logged until error is encountered")
+logger.Info("Not logged until error is encountered")
 logger.Warn("Will log")
 logger.Error("Will log and flush Info and Debug logs")
+```
 
+Write `Error` logs, and flush `Warn`, `Info` and `Debug` logs when an `Error` occurs:
+
+```go
+inner := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
+h := logtrap.NewHandler(inner, &logtrap.HandlerOptions{
+	TailSize:   10,
+	TailLevel:  slog.LevelWarn,
+	FlushLevel: slog.LevelError,
+})
+logger := slog.New(h)
+
+logger.Debug("Not logged until error is encountered")
+logger.Info("Not logged until error is encountered")
+logger.Warn("Not logged until error is encountered")
+logger.Error("Will log and flush Info and Debug logs")
 ```
