@@ -6,7 +6,7 @@ Save logging quota and focus on the logs that matter with LogTrap, a `log/slog` 
 ### Features:
 
 - Write efficient buffering via a ring buffer
-- Flushes logs only when the "flush level" is met (usually an `Error` or `Warn`)
+- Flushes logs only when the configured "flush level" is met (usually an `Error` or `Warn`)
 - Helps reduce log noise and optimise logging costs
 - Seamless integration with Go's `log/slog` package
 
