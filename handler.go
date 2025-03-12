@@ -105,7 +105,7 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 	// look for h.opts.AttrKey, context is priority followed by log attributes.
 	// set a default key incase they one is not specified then handler uses same map mechanism regardless
 	var key any = "nokey"
-	if v, ok := ctx.Value(h.opts.AttrKey).(any); ok {
+	if v := ctx.Value(h.opts.AttrKey); v != nil {
 		key = v
 	} else {
 		// TODO: Can we use Value in map, or can we use Unique?
