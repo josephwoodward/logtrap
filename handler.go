@@ -53,7 +53,7 @@ func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTrapHandler {
 		opts.TailLevel = slog.LevelInfo
 	}
 
-	if opts.TailSize == 0 {
+	if opts.TailSize <= 0 {
 		opts.TailSize = 10
 	}
 
@@ -105,7 +105,7 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 	// look for h.opts.AttrKey, context is priority followed by log attributes.
 	// set a default key incase they one is not specified then handler uses same map mechanism regardless
 	var key any = "nokey"
-	if v, ok := ctx.Value(h.opts.AttrKey).(string); ok {
+	if v, ok := ctx.Value(h.opts.AttrKey).(any); ok {
 		key = v
 	} else {
 		// TODO: Can we use Value in map, or can we use Unique?
