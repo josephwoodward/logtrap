@@ -5,6 +5,7 @@ Save logging quota and focus on the logs that matter with LogTrap, a `log/slog` 
 
 ### Features:
 
+- Zero dependencies
 - Write efficient buffering via a ring buffer
 - Flushes logs only when the configured "flush level" is met (usually an `Error` or `Warn`)
 - Helps reduce log noise and optimise logging costs
@@ -24,9 +25,7 @@ Write `Error` and `Warning` logs, but only flush `Info` and `Debug` logs when an
 ```go
 inner := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 h := logtrap.NewHandler(inner, &logtrap.HandlerOptions{
-	TailSize:   10,
 	TailLevel:  slog.LevelInfo,
-	FlushLevel: slog.LevelError,
 })
 logger := slog.New(h)
 
@@ -41,9 +40,7 @@ Write `Error` logs, and flush `Warn`, `Info` and `Debug` logs when an `Error` oc
 ```go
 inner := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 h := logtrap.NewHandler(inner, &logtrap.HandlerOptions{
-	TailSize:   10,
 	TailLevel:  slog.LevelWarn,
-	FlushLevel: slog.LevelError,
 })
 logger := slog.New(h)
 
