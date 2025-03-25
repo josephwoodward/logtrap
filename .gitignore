@@ -25,5 +25,6 @@ go.work.sum
 .env
 
 # others
+vendor
 .approval_tests_temp
 internal/bench/data/
