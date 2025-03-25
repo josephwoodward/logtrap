@@ -25,6 +25,7 @@ coverage:
 tools:
 	${BIN} install github.com/bokwoon95/wgo@latest
 	${BIN} install github.com/rakyll/gotest@latest
+	${BIN} install github.com/tsliwowicz/go-wrk@latest
 	${BIN} install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	${BIN} get -t -u golang.org/x/tools/cmd/cover
 	go mod tidy
@@ -34,3 +35,6 @@ lint:
 
 lint-fix:
 	golangci-lint run --timeout 60s --max-same-issues 50 --fix ./...
+
+load-test:
+	go run internal/bench/server.go

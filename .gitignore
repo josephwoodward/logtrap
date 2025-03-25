@@ -26,3 +26,4 @@ go.work.sum
 
 # others
 .approval_tests_temp
+internal/bench/data
