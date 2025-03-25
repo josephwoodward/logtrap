@@ -36,5 +36,5 @@ lint:
 lint-fix:
 	golangci-lint run --timeout 60s --max-same-issues 50 --fix ./...
 
-load-test:
+run:
 	go run internal/bench/server.go

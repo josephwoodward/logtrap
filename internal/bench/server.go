@@ -23,15 +23,22 @@ func main() {
 
 	f := func(w http.ResponseWriter, r *http.Request) {
 		id := time.Now().Unix()
-		logger.Info("received request info", "request_id", id)
 		logger.Debug("received request", "request_id", id)
 		w.Write([]byte("OK"))
+		logger.Debug("writing response", "request_id", id)
+	}
+
+	f2 := func(w http.ResponseWriter, r *http.Request) {
+		id := time.Now().Unix()
 		logger.Debug("received request", "request_id", id)
+		w.Write([]byte("OK"))
+		logger.Debug("writing response", "request_id", id)
+		logger.Error("failed to write response", "request_id", id)
 	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/log-info", http.HandlerFunc(f))
-	mux.Handle("/log-error", http.HandlerFunc(f))
+	mux.Handle("/log-error", http.HandlerFunc(f2))
 	// mux.Handle("/metrics", promhttp.Handler())
 
 	logger.Info("Listening on :8090...")
