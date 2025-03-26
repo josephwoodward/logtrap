@@ -3,8 +3,11 @@ package logtrap
 import (
 	"container/ring"
 	"context"
+	"fmt"
 	"log/slog"
+	"runtime"
 	"sync"
+	"weak"
 )
 
 type HandlerOptions struct {
@@ -28,7 +31,7 @@ type LogTrapHandler struct {
 	inner  slog.Handler
 	opts   HandlerOptions
 	mu     sync.Mutex
-	buffer map[any]*ring.Ring
+	buffer map[any]weak.Pointer[ring.Ring]
 	goas   []groupOrAttrs
 }
 
@@ -59,7 +62,7 @@ func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTrapHandler {
 
 	return &LogTrapHandler{
 		inner:  handler,
-		buffer: make(map[any]*ring.Ring),
+		buffer: make(map[any]weak.Pointer[ring.Ring]),
 		opts:   *opts,
 	}
 }
@@ -126,20 +129,25 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 		h.mu.Lock()
 		defer h.mu.Unlock()
 
-		if buf, ok := h.buffer[key]; ok {
-			var err error
-			// iterate through buffer, flushing output to underlying handler
-			buf.Do(func(v any) {
-				if r, ok := v.(slog.Record); ok {
-					if err = h.inner.Handle(ctx, r); err != nil {
-						return
+		var buf *ring.Ring
+		b, ok := h.buffer[key]
+		if ok {
+			buf = b.Value()
+			if buf != nil {
+				var err error
+				// iterate through buffer, flushing output to underlying handler
+				buf.Do(func(v any) {
+					if r, ok := v.(slog.Record); ok {
+						if err = h.inner.Handle(ctx, r); err != nil {
+							return
+						}
 					}
+				})
+				if err != nil {
+					return err
 				}
-			})
-			if err != nil {
-				return err
+				delete(h.buffer, key)
 			}
-			delete(h.buffer, key)
 		}
 
 		return h.inner.Handle(ctx, record)
@@ -154,16 +162,33 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 		h.mu.Lock()
 		defer h.mu.Unlock()
 
-		if buf, ok := h.buffer[key]; ok {
-			buf.Value = record.Clone()
-			buf = buf.Next()
-			h.buffer[key] = buf
-		} else {
-			buf = ring.New(h.opts.TailSize)
-			buf.Value = record.Clone()
-			buf = buf.Next()
-			h.buffer[key] = buf
+		// append to buffer, checking weak pointer
+		var buf *ring.Ring
+		b, ok := h.buffer[key]
+		if ok {
+			buf = b.Value()
+			if buf != nil {
+				buf.Value = record.Clone()
+				buf = buf.Next()
+				h.buffer[key] = weak.Make(buf)
+				return nil
+			}
 		}
+
+		// no buffer, possibly been cleaned up so create new one
+		buf = ring.New(h.opts.TailSize)
+		buf.Value = record.Clone()
+		buf = buf.Next()
+		h.buffer[key] = weak.Make(buf)
+
+		runtime.AddCleanup(buf, func(k any) {
+			h.mu.Lock()
+			// Only delete if the weak pointer is equal. If it's not, someone
+			// else already deleted the entry and installed a new mapped file.
+			delete(h.buffer, k)
+			fmt.Printf("cleaned up key %s, size is now %d\n", k, len(h.buffer))
+			h.mu.Unlock()
+		}, key)
 
 		return nil
 	}
