@@ -3,7 +3,6 @@ package logtrap
 import (
 	"container/ring"
 	"context"
-	"fmt"
 	"log/slog"
 	"runtime"
 	"sync"
@@ -42,7 +41,8 @@ type groupOrAttrs struct {
 }
 
 type logs struct {
-	b *ring.Ring
+	*ring.Ring
+	sync.RWMutex
 	key any
 }
 
@@ -142,13 +142,15 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 			if buf != nil {
 				var err error
 				// iterate through buffer, flushing output to underlying handler
-				buf.b.Do(func(v any) {
+				buf.RLock()
+				buf.Do(func(v any) {
 					if r, ok := v.(slog.Record); ok {
 						if err = h.inner.Handle(ctx, r); err != nil {
 							return
 						}
 					}
 				})
+				buf.RUnlock()
 				if err != nil {
 					return err
 				}
@@ -174,26 +176,27 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 		if ok {
 			buf = b.Value()
 			if buf != nil {
-				buf.b.Value = record.Clone()
-				buf.b = buf.b.Next()
+				buf.Lock()
+				buf.Value = record.Clone()
+				buf.Ring = buf.Next()
 				h.buffer[key] = weak.Make(buf)
+				buf.Unlock()
 				return nil
 			}
 		}
 
 		// no buffer, possibly been cleaned up so create new one
 		buf = &logs{key: key}
-		buf.b = ring.New(h.opts.TailSize)
-		buf.b.Value = record.Clone()
-		buf.b = buf.b.Next()
+		r := ring.New(h.opts.TailSize)
+		r.Value = record.Clone()
+		r = r.Next()
+		buf.Ring = r
+
 		h.buffer[key] = weak.Make(buf)
 
 		runtime.AddCleanup(buf, func(k any) {
 			h.mu.Lock()
-			// Only delete if the weak pointer is equal. If it's not, someone
-			// else already deleted the entry and installed a new mapped file.
 			delete(h.buffer, k)
-			fmt.Printf("cleaned up key %d, size is now %d\n", k, len(h.buffer))
 			h.mu.Unlock()
 		}, key)
 
