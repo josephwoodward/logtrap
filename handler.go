@@ -42,8 +42,8 @@ type groupOrAttrs struct {
 }
 
 type logs struct {
-	r *ring.Ring
-	id any
+	b *ring.Ring
+	key any
 }
 
 // NewHandler creates a [LogTrapHandler] that writes to the handler.
@@ -137,12 +137,12 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 		var buf *logs
 		b, ok := h.buffer[key]
 		if ok {
-			buf.id = key
+			buf.key = key
 			buf = b.Value()
 			if buf != nil {
 				var err error
 				// iterate through buffer, flushing output to underlying handler
-				buf.r.Do(func(v any) {
+				buf.b.Do(func(v any) {
 					if r, ok := v.(slog.Record); ok {
 						if err = h.inner.Handle(ctx, r); err != nil {
 							return
@@ -174,18 +174,18 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 		if ok {
 			buf = b.Value()
 			if buf != nil {
-				buf.r.Value = record.Clone()
-				buf.r = buf.r.Next()
+				buf.b.Value = record.Clone()
+				buf.b = buf.b.Next()
 				h.buffer[key] = weak.Make(buf)
 				return nil
 			}
 		}
 
 		// no buffer, possibly been cleaned up so create new one
-		buf = &logs{id: key}
-		buf.r = ring.New(h.opts.TailSize)
-		buf.r.Value = record.Clone()
-		buf.r = buf.r.Next()
+		buf = &logs{key: key}
+		buf.b = ring.New(h.opts.TailSize)
+		buf.b.Value = record.Clone()
+		buf.b = buf.b.Next()
 		h.buffer[key] = weak.Make(buf)
 
 		runtime.AddCleanup(buf, func(k any) {
