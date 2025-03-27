@@ -31,7 +31,7 @@ type LogTrapHandler struct {
 	inner  slog.Handler
 	opts   HandlerOptions
 	mu     sync.Mutex
-	buffer map[any]weak.Pointer[ring.Ring]
+	buffer map[any]weak.Pointer[logs]
 	goas   []groupOrAttrs
 }
 
@@ -39,6 +39,11 @@ type LogTrapHandler struct {
 type groupOrAttrs struct {
 	group string      // group name if non-empty
 	attrs []slog.Attr // attrs if non-empty
+}
+
+type logs struct {
+	r *ring.Ring
+	id any
 }
 
 // NewHandler creates a [LogTrapHandler] that writes to the handler.
@@ -62,7 +67,7 @@ func NewHandler(handler slog.Handler, opts *HandlerOptions) *LogTrapHandler {
 
 	return &LogTrapHandler{
 		inner:  handler,
-		buffer: make(map[any]weak.Pointer[ring.Ring]),
+		buffer: make(map[any]weak.Pointer[logs]),
 		opts:   *opts,
 	}
 }
@@ -129,14 +134,15 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 		h.mu.Lock()
 		defer h.mu.Unlock()
 
-		var buf *ring.Ring
+		var buf *logs
 		b, ok := h.buffer[key]
 		if ok {
+			buf.id = key
 			buf = b.Value()
 			if buf != nil {
 				var err error
 				// iterate through buffer, flushing output to underlying handler
-				buf.Do(func(v any) {
+				buf.r.Do(func(v any) {
 					if r, ok := v.(slog.Record); ok {
 						if err = h.inner.Handle(ctx, r); err != nil {
 							return
@@ -163,22 +169,23 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 		defer h.mu.Unlock()
 
 		// append to buffer, checking weak pointer
-		var buf *ring.Ring
+		var buf *logs
 		b, ok := h.buffer[key]
 		if ok {
 			buf = b.Value()
 			if buf != nil {
-				buf.Value = record.Clone()
-				buf = buf.Next()
+				buf.r.Value = record.Clone()
+				buf.r = buf.r.Next()
 				h.buffer[key] = weak.Make(buf)
 				return nil
 			}
 		}
 
 		// no buffer, possibly been cleaned up so create new one
-		buf = ring.New(h.opts.TailSize)
-		buf.Value = record.Clone()
-		buf = buf.Next()
+		buf = &logs{id: key}
+		buf.r = ring.New(h.opts.TailSize)
+		buf.r.Value = record.Clone()
+		buf.r = buf.r.Next()
 		h.buffer[key] = weak.Make(buf)
 
 		runtime.AddCleanup(buf, func(k any) {
@@ -186,7 +193,7 @@ func (h *LogTrapHandler) Handle(ctx context.Context, record slog.Record) error {
 			// Only delete if the weak pointer is equal. If it's not, someone
 			// else already deleted the entry and installed a new mapped file.
 			delete(h.buffer, k)
-			fmt.Printf("cleaned up key %s, size is now %d\n", k, len(h.buffer))
+			fmt.Printf("cleaned up key %d, size is now %d\n", k, len(h.buffer))
 			h.mu.Unlock()
 		}, key)
 
