@@ -22,6 +22,7 @@ func main() {
 	logger.Info("server listening on port 8090")
 
 	f := func(w http.ResponseWriter, r *http.Request) {
+		// id := r.URL.Query().Get("request-id")
 		id := time.Now().Unix()
 		logger.Debug("received request", "request_id", id)
 		w.Write([]byte("OK"))
@@ -29,6 +30,7 @@ func main() {
 	}
 
 	f2 := func(w http.ResponseWriter, r *http.Request) {
+		// id := r.URL.Query().Get("request-id")
 		id := time.Now().Unix()
 		logger.Debug("received request", "request_id", id)
 		w.Write([]byte("OK"))
