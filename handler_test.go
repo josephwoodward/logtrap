@@ -5,8 +5,6 @@ import (
 	"io"
 	"log/slog"
 	"testing"
-
-	approvals "github.com/approvals/go-approval-tests"
 )
 
 func Test_DefaultHandlerOptions(t *testing.T) {
@@ -49,41 +47,41 @@ func Test_DefaultHandlerOptions(t *testing.T) {
 	}
 }
 
-func Test_WithLogger(t *testing.T) {
-	// arrange
-	var buf bytes.Buffer
-	handler := NewHandler(
-		slog.NewTextHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
-		&HandlerOptions{TailSize: 10, TailLevel: slog.LevelInfo, AttrKey: "request_id", FlushLevel: slog.LevelError},
-	)
-	logger := slog.New(handler)
+func Test_BufferWidth(t *testing.T) {
+	var table = []struct {
+		name     string
+		count    int
+		expected int
+		opts     *HandlerOptions
+	}{
+		// TODO: add depth test
+		{name: "nil handler options", expected: 1, count: 1, opts: nil},
+		{name: "default key", expected: 1, count: 1, opts: &HandlerOptions{}},
+		{name: "less than default size", expected: 5, count: 5, opts: &HandlerOptions{AttrKey: "request_id"}},
+		{name: "exactly default size", expected: 10, count: 10, opts: &HandlerOptions{AttrKey: "request_id"}},
+		{name: "no more than default size", expected: 10, count: 11, opts: &HandlerOptions{AttrKey: "request_id"}},
+	}
 
-	// act
-	l := logger.With(slog.String("request_id", "1234"))
-	l.Debug("debug expected")
-	l.Info("info expected")
-	l.Error("error expected")
+	for _, v := range table {
+		t.Run(v.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			handler := NewHandler(
+				slog.NewTextHandler(&buf, &slog.HandlerOptions{ReplaceAttr: clearTimeAttr, Level: slog.LevelDebug}),
+				v.opts,
+			)
+			l := slog.New(handler)
 
-	// assert
-	// if len(handler.buffer) != 1 {
-	// 	t.Errorf("expected to find 1 map entry but found %d", len(handler.buffer))
-	// }
-	// actual := buf.String()
-	// if !strings.Contains(actual, "debug expected") {
-	// 	t.Errorf("expected to not find tailed logs but did:\n%s", actual)
-	// }
+			for i := 0; i < v.count; i++ {
+				l.Info("logging debug", "request_id", i)
+			}
 
-	// l = logger.With(slog.String("request_id", "4321"), slog.String("request", "4321"))
-	// l.Debug("debug expected")
-	// l.Info("info expected")
-	// l.Error("error expected")
-
-	// assert
-	// if len(handler.buffer) != 1 {
-	// 	t.Errorf("expected to find 1 map entry but found %d", len(handler.buffer))
-	// }
-
-	approvals.VerifyString(t, buf.String())
+			// assert
+			got := len(handler.buffer)
+			if got != v.count {
+				t.Errorf("expected to find %d unique request logs but found %d", v.count, got)
+			}
+		})
+	}
 }
 
 func clearTimeAttr(_ []string, a slog.Attr) slog.Attr {
