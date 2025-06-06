@@ -1,5 +1,9 @@
 # LogTrap
 
+
+<img alt="Logtrap Logo" height="280" src="logtrap_logo_450x450.png" />
+
+
 We'd all love to log at `Debug` level but doing so can get expensive. This is where logtrap helps. 
 
 Save logging quota and focus on the logs that matter with LogTrap, a `log/slog` handler for Go that buffers logs in a ring buffer and only flushes them when an error or warning occurs.
