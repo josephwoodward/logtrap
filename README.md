@@ -1,7 +1,7 @@
 # LogTrap
 
 
-<img alt="Logtrap Logo" height="280" src="logtrap_logo_450x450.png" />
+<img alt="Logtrap Logo" height="450" src="/logtrap_logo_450x450.png" />
 
 
 We'd all love to log at `Debug` level but doing so can get expensive. This is where logtrap helps. 
